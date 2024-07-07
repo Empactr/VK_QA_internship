@@ -22,7 +22,7 @@ test('[API] GitHub Issues: Создание, Обновление, Удален�
     let updateError = undefined;
 
     try{
-        await test.step('Create Issue', async() => {
+        await test.step('Create Issue Valid Data', async() => {
             
             //Используем POST, так как отправляем данные
             const newIssue = await apiContext.post(`/repos/${process.env.GITHUB_USERNAME}/${process.env.GITHUB_REPOSITORY}/issues`,{
@@ -51,7 +51,7 @@ test('[API] GitHub Issues: Создание, Обновление, Удален�
         throw error;
     }
     try{
-        await test.step('Update Issue', async() => {
+        await test.step('Update Issue Valid Data', async() => {
             //Используем PATCH, так как хотим обновить данные
             const updatedIssue = await apiContext.patch(`/repos/${process.env.GITHUB_USERNAME}/${process.env.GITHUB_REPOSITORY}/issues/${issueNumber}`,{
                 data:{
@@ -77,7 +77,7 @@ test('[API] GitHub Issues: Создание, Обновление, Удален�
         updateError = error;
     }
     try{
-        await test.step('Lock Issue', async()=>{
+        await test.step('Lock Issue Valid Data', async()=>{
             //Используем PATCH, так как мы не удялаем данные, а обновляем его состояние
             const lockIssue = await apiContext.patch(`/repos/${process.env.GITHUB_USERNAME}/${process.env.GITHUB_REPOSITORY}/issues/${issueNumber}`,{
                 data:{

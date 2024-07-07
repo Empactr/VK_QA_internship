@@ -3,7 +3,7 @@ import {config} from 'dotenv'
 import {resolve} from 'path'
 
 setup('Initialize global variables', async({ })=>{
-    config({path:resolve(__dirname, '.env')});
+    config({path:resolve(__dirname, 'env')});
 
     process.env.ISSUE_TABLE_URL = `https://github.com/${process.env.GITHUB_USERNAME}/${process.env.GITHUB_REPOSITORY}/issues`
     process.env.ISSUE_TITLE = "Issue 1"

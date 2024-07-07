@@ -18,7 +18,7 @@ test('[UI] GitHub Issues: Создание, Обновление, Удалени
         Создаем Issue
     */
     try{
-        await test.step('Create Issue', async ()=>{
+        await test.step('Create Issue Valid Data', async ()=>{
             await handler.create_new_issue(
                 process.env.ISSUE_TITLE, 
                 process.env.ISSUE_DESCRIPTION_INITIAL, 
@@ -44,7 +44,7 @@ test('[UI] GitHub Issues: Создание, Обновление, Удалени
         Обновляем Issue
     */
     try{
-        await test.step('Update Issue', async ()=>{
+        await test.step('Update Issue Valid Data', async ()=>{
             //Переходим по элементу списка
             await handler.update_issue({
                 description: process.env.ISSUE_DESCRIPTION_UPDATE, 
@@ -66,7 +66,7 @@ test('[UI] GitHub Issues: Создание, Обновление, Удалени
         Блокируем Issue
     */
     try{
-        await test.step('Lock Issue', async () => {
+        await test.step('Lock Issue Valid Data', async () => {
            await handler.lock_issue(issueNumber);
            
            //Проверяем на отсутствие Issue
