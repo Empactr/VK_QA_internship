@@ -1,86 +1,75 @@
 const {test,expect} = require("@playwright/test"); //Импортируем необходимые методы для реализации автотестов
-const { timeout } = require("../playwright.config");
-const {TOTP} =  require('otpauth');
-const {IssuePage} = require('../models/issue.page');
 
-let issueNumber;
+const {CreateUIPage} = require("../models/create_ui.page");
+const {UpdateUIPage} = require("../models/update_ui.page");
+const { DeleteUIPage } = require("../models/delete_ui.page");
 
 
-test('[UI] GitHub Issues: Создание, Обновление, Удаление', async ({page})=>{
-    let updateError = undefined;
-    let handler = new IssuePage(page);
-    let res = await handler.sign_in();
-    if(!res.status){
-        throw res.error;
-    }
+test.use({
+    storageState:process.env.AUTH_FILE, 
+    baseURL:`https://github.com/${process.env.GITHUB_USERNAME}/${process.env.GITHUB_REPOSITORY}/issues/`
+});
 
-    /*
-        Создаем Issue
-    */
-    try{
-        await test.step('Create Issue Valid Data', async ()=>{
-            await handler.create_new_issue(
-                process.env.ISSUE_TITLE, 
-                process.env.ISSUE_DESCRIPTION_INITIAL, 
-                [/bug/],
-                process.env.GITHUB_USERNAME
-            );
-        
-            issueNumber = await handler.page.url().split('/').pop();
-            
-            await handler.goto();
+async function create_test_issue(page){
+    var create_page = new CreateUIPage(page);
+    return await create_page.create_new_issue({
+        title:process.env.ISSUE_TITLE, 
+        body:process.env.ISSUE_DESCRIPTION_INITIAL, 
+        labels:['bug'],
+        assignee:process.env.GITHUB_USERNAME
+    });
+}
+async function delete_test_issue(page, issue_number){
+    const delete_page = new DeleteUIPage(page);
+    await delete_page.delete_issue(issue_number);
+}
 
-            // Ожидание того, что Issue присутствует на странице
-            await expect(handler.page.locator(`[href="/${process.env.GITHUB_USERNAME}/${process.env.GITHUB_REPOSITORY}/issues/${issueNumber}"]`).first()).toBeVisible({timeout:5000});
-        })
+test("[UI] Create issue with valid data", async({page}) => {
+    //ПРЕДУСЛОВИЯ
 
-    }catch(error){
-        //Прекращаем работу, так как не сможем Обновить и Удалить несуществующий Issue
-        console.error(`[ERROR] ${error.message}`);
-        throw error;
-    }
 
-    /*
-        Обновляем Issue
-    */
-    try{
-        await test.step('Update Issue Valid Data', async ()=>{
-            //Переходим по элементу списка
-            await handler.update_issue({
-                description: process.env.ISSUE_DESCRIPTION_UPDATE, 
-                issue_number:issueNumber
-            });
-        
-            //Проверяем обновленное описание
-            const issueDescription = await handler.page.getByRole('cell', { name: process.env.ISSUE_DESCRIPTION_UPDATE }).getByRole('paragraph').textContent();
-            await expect(issueDescription).toBe(process.env.ISSUE_DESCRIPTION_UPDATE)
-        })
+    //ШАГИ
+    const issue_number = await create_test_issue(page);
+    
+    await page.goto('');
+    //** Проверяем создался ли Issue
+    await expect(page.locator(`[href="/${process.env.GITHUB_USERNAME}/${process.env.GITHUB_REPOSITORY}/issues/${issue_number}"]`).first()).toBeVisible({timeout:5000});
 
-    }catch(error){
-        //Продолжаем работу, так как можем попробовать Удалить Issue
-        console.error(`[ERROR] ${error.message}`);
-        updateError = error;
-    }
+    //ПОСТУСЛОВИЯ
 
-    /*
-        Блокируем Issue
-    */
-    try{
-        await test.step('Lock Issue Valid Data', async () => {
-           await handler.lock_issue(issueNumber);
-           
-           //Проверяем на отсутствие Issue
-           await expect(page.locator(`[href="/${process.env.GITHUB_USERNAME}/${process.env.GITHUB_REPOSITORY}/issues/${issueNumber}"]`).first()).not.toBeVisible({timeout:5000});
-        })
+   await delete_test_issue(page,issue_number);
+});
 
-    }catch(error){
-        console.error(`[ERROR] ${error.message}`);
-        throw error;
-    }
+test("[UI] Update issue with valid data", async({page}) => {
+    //ПРЕДУСЛОВИЯ
+    const issue_number = await create_test_issue(page);
 
-    //Если во время выполнения 'Update Issue' возникла ошибка
-    //То выбрасываем Error, так как Тест не был проведен полностью успешно
-    if(updateError != undefined){
-        throw updateError;
-    }
-})
+    //ШАГИ
+    const update_page = new UpdateUIPage(page);
+    await update_page.update_issue({
+        issue_number:issue_number,
+        body:process.env.ISSUE_DESCRIPTION_UPDATE
+    })
+
+    //** Проверяем корректно ли обновилось описание
+    const issue_body = await page.getByRole('cell', { name: process.env.ISSUE_DESCRIPTION_UPDATE }).getByRole('paragraph').textContent();
+    await expect(issue_body).toBe(process.env.ISSUE_DESCRIPTION_UPDATE)
+
+    //ПОСТУСЛОВИЯ
+
+    await delete_test_issue(page,issue_number);
+});
+
+test("[UI] Delete issue with valid data", async({page}) => {
+    //ПРЕДУСЛОВИЯ
+    const issue_number = await create_test_issue(page);
+
+    //ШАГИ
+
+    await delete_test_issue(page,issue_number);
+    
+
+    
+    //ПОСТУСЛОВИЯ
+
+});

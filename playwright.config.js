@@ -2,7 +2,7 @@
 const { defineConfig, devices } = require('@playwright/test');
 const dotenv = require('dotenv');
 dotenv.config({path:'env'});
-
+console.log(process.env.AUTH_FILE);
 /**
  * Read environment variables from file.
  * https://github.com/motdotla/dotenv
@@ -47,23 +47,25 @@ module.exports = defineConfig({
   /* Configure projects for major browsers */
   projects: [
     {name:'setup variables', testMatch:/.global\.setup\.js/},
+    {name: 'authenticate', testMatch:/.auth\.setup\.js/},
     {
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
-      dependencies:['setup variables']
+      
+      dependencies:['setup variables', 'authenticate']
 
     },
 
     {
       name: 'firefox',
       use: { ...devices['Desktop Firefox']},
-      dependencies:['setup variables']
+      dependencies:['setup variables', 'authenticate']
     },
 
     {
       name: 'webkit',
       use: { ...devices['Desktop Safari'] },
-      dependencies:['setup variables']
+      dependencies:['setup variables', 'authenticate']
     },
 
     /* Test against mobile viewports. */

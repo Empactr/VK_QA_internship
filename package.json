@@ -15,6 +15,7 @@
   "dependencies": {
     "allure-commandline": "^2.29.0",
     "dotenv": "^16.4.5",
+    "graphql": "^16.9.0",
     "otpauth": "^9.3.1"
   }
 }
